@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+
+  sql-db:
+    image: mysql
+
+  auth-api:
+    #image: 
+    build: 
+      context: ..
+      dockerfile: Auth-Services/Dockerfile
+    depends_on:
+      - sql-db
+
+  account-api:
+    #image: 
+    build: 
+      context: ..
+      dockerfile: Account-Service/Dockerfile
+    depends_on:
+      - sql-db
+      - auth-api
+
+  shop-api:
+    #image: 
+    build: 
+      context: ..
+      dockerfile: Shop-Service/Dockerfile
+    depends_on:
+      - sql-db
+      - auth-api
+
+  card-api:
+    #image: 
+    build: 
+      context: ..
+      dockerfile: Card-Service/Dockerfile
+    depends_on:
+      - sql-db
+      - auth-api
+
+  notification-api:
+    #image: 
+    build: 
+      context: ..
+      dockerfile: Notification-Service/Dockerfile
+    depends_on:
+      - auth-api
+
+  gateway:
+    #image: 
+    build: 
+      context: ..
+      dockerfile: Ocelot-ApiGateways/Dockerfile
+    depends_on:
+      - sql-db
+      - auth-api
+      - account-api
+      - shop-api
+      - card-api
+      - notification-api
+  #vue-admin:
+  
