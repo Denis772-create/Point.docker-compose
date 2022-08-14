@@ -4,8 +4,11 @@ services:
 
   sql-db:
     environment:
+      MYSQL_ROOT_PASSWORD: dev-password
     ports:
+      - "3306:3306"
     volumes:
+      - point-sqldata:/var/lib/mysql
 
   auth-api:
     environment:
@@ -32,5 +35,6 @@ services:
     ports:
 
 volumes:
-
+  point-sqldata:
+    xternal: false
 
