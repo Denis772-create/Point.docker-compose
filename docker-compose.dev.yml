@@ -10,31 +10,78 @@ services:
     volumes:
       - point-sqldata:/var/lib/mysql
 
-  auth-api:
-    environment:
-    ports:
+ # auth-api:
+  #  environment:
+   #   - ASPNETCORE_ENVIRONMENT=Development
+   #   - EventBusConnection=${AZURE_SERVICE_BUS}
+      #- ConnectionString=
+   # ports:
+    #  - "3001:443"
 
   account-api:
     environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      EventBusConnection: ${AZURE_SERVICE_BUS}
+      ConnectionStrings__AccountDbConnection: server=sql-db;port=3306;user=root;password=dev-password;database=POINT-ACCOUNT-DB
+      ASPNETCORE_URLS: "https://+"
+      ASPNETCORE_HTTPS_PORT: "3002"
+      ASPNETCORE_Kestrel__Certificates__Default__Password: ${SSL_CERT_PASSWORD}
+      ASPNETCORE_Kestrel__Certificates__Default__Path: "/https/Point.Services.Account.Api.pfx"
     ports:
+      - "3002:443"
+    volumes:
+      - ${USERPROFILE}\.aspnet\https:/https:ro
+      - ${APPDATA}\microsoft\UserSecrets\:/root/.microsoft/usersecrets
 
   shop-api:
     environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      EventBusConnection: ${AZURE_SERVICE_BUS}
+      ConnectionStrings__ShopDbConnection: server=sql-db;port=3306;user=root;password=dev-password;database=POINT-SHOP-DB
+      ASPNETCORE_URLS: "https://+"
+      ASPNETCORE_HTTPS_PORT: "3003"
+      ASPNETCORE_Kestrel__Certificates__Default__Password: ${SSL_CERT_PASSWORD}
+      ASPNETCORE_Kestrel__Certificates__Default__Path: "/https/Point.Services.Shops.Api.pfx"
     ports:
+      - "3003:443"
+    volumes:
+      - ${USERPROFILE}\.aspnet\https:/https:ro
+      - ${APPDATA}\microsoft\UserSecrets\:/root/.microsoft/usersecrets
 
   card-api:
     environment:
+      ASPNETCORE_ENVIRONMENT: "Development"
+      EventBusConnection: ${AZURE_SERVICE_BUS}
+      ConnectionStrings__CardDbConnection: "server=sql-db;port=3306;user=root;password=dev-password;database=POINT-CARD-DB"
+      ASPNETCORE_URLS: "https://+"
+      ASPNETCORE_HTTPS_PORT: "3004"
+      ASPNETCORE_Kestrel__Certificates__Default__Password: ${SSL_CERT_PASSWORD}
+      ASPNETCORE_Kestrel__Certificates__Default__Path: "/https/Point.Services.Card.Api.pfx"
     ports:
-
-  notification-api:
-    environment:
-    ports:
+      - "3004:443"
+    volumes:
+      - ${USERPROFILE}\.aspnet\https:/https:ro
+      - ${APPDATA}\microsoft\UserSecrets\:/root/.microsoft/usersecrets
 
   gateway:
     environment:
+      ASPNETCORE_ENVIRONMENT: "Development"
+      ASPNETCORE_URLS: "https://+"
+      ASPNETCORE_HTTPS_PORT: "3004"
+      ASPNETCORE_Kestrel__Certificates__Default__Password: ${SSL_CERT_PASSWORD}
+      ASPNETCORE_Kestrel__Certificates__Default__Path: "/https/Point.ApiGateways.Ocelot.pfx"
+      urls__auth: http://auth-api    
+      urls__account: http://account-api
+      urls__shop: http://shop-api
+      urls__card: http://card-api
     ports:
+      - "3005:443"
+    volumes:
+      - ${USERPROFILE}\.aspnet\https:/https:ro
+      - ${APPDATA}\microsoft\UserSecrets\:/root/.microsoft/usersecrets
+
 
 volumes:
   point-sqldata:
-    xternal: false
+    external: false
 
