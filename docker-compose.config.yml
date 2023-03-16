@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+
+  sql-db:
+    environment:
+      MYSQL_ROOT_PASSWORD: dev-password
+    ports:
+      - "3306:3306"
+    volumes:
+      - point-sqldata:/var/lib/mysql
+
+  identity-api:
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      EventBusConnection: ${AZURE_SERVICE_BUS}
+      ConnectionStrings__AuthConnection: server=sql-db;port=3306;user=root;password=dev-password;database=AuthServerDb
+      ASPNETCORE_URLS: "https://+"
+      ASPNETCORE_HTTPS_PORT: "3001"
+      ASPNETCORE_Kestrel__Certificates__Default__Password: ${SSL_CERT_PASSWORD}
+      ASPNETCORE_Kestrel__Certificates__Default__Path: "/https/AuthApi.pfx"
+    ports:
+      - "3001:443"
+
+  point-api:
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      EventBusConnection: ${AZURE_SERVICE_BUS}
+      ConnectionStrings__ShopDbConnection: server=sql-db;port=3306;user=root;password=dev-password;database=POINT-SHOP-DB
+      ASPNETCORE_URLS: "https://+"
+      ASPNETCORE_HTTPS_PORT: "3003"
+      ASPNETCORE_Kestrel__Certificates__Default__Password: ${SSL_CERT_PASSWORD}
+      ASPNETCORE_Kestrel__Certificates__Default__Path: "/https/Point.Services.Shops.Api.pfx"
+    ports:
+      - "3003:443"
+    volumes:
+      - ${USERPROFILE}\.aspnet\https:/https:ro
+      - ${APPDATA}\microsoft\UserSecrets\:/root/.microsoft/usersecrets
+
+volumes:
+  point-sqldata:
+    external: false
+
