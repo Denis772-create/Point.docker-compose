@@ -1,0 +1,55 @@
+version: '3.1'
+
+services:
+
+  sql-db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sql-server
+    environment:
+      MSSQL_SA_PASSWORD: \N{-@}XJgWp[IrQ}:5dd
+      ACCEPT_EULA: Y
+    ports:
+      - "1433:1433"
+    networks:
+      - point-net
+    volumes:
+      - point-sqldata:/var/lib/sqlserver
+    restart: unless-stopped
+
+  point-api:
+    image: acrpointqa.azurecr.io/api:$(imageTag)
+    container_name: main-api
+    environment:
+      ASPNETCORE_ENVIRONMENT: QA
+      EventBusConnection: ${AZURE_SERVICE_BUS}
+      ConnectionStrings__AppDbConnection: Server=sql-db;Database=point;User Id=sa;Password=\N{-@}XJgWp[IrQ}:5dd;TrustServerCertificate=true;
+      Serilog__Using__0: Serilog.Sinks.Console
+      Serilog__MinimumLevel__Default: Debug
+      Serilog__MinimumLevel__Override__Microsoft: Warning
+      Serilog__MinimumLevel__Override__System: Warning
+      Serilog__WriteTo__0__Name: Console
+      Serilog__Enrich__0: FromLogContext
+      Serilog__Properties__ApplicationName: Point API
+      ApiConfiguration__ApiName: Point API
+      ApiConfiguration__ApiVersion: v1
+      ApiConfiguration__ApiBaseUrl: point-api
+      ApiConfiguration__IdentityServerBaseUrl: https://localhost:7097
+      ApiConfiguration__OidcSwaggerUIClientId: point_api_swagger_clientId
+      ApiConfiguration__OidcApiName: point_api
+      ApiConfiguration__RequireHttpsMetadata: 'false'
+      ApiConfiguration__CorsAllowAnyOrigin: 'true'
+    ports:
+      - "3002:80"
+    networks:
+      - point-net
+    depends_on:
+      - sql-db
+    restart: unless-stopped
+
+volumes:
+  point-sqldata:
+    external: false
+
+networks:
+  point-net:
+    external: true

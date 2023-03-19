@@ -1,0 +1,54 @@
+version: '3.1'
+
+services:
+
+  identity-api:
+    image: acrpointqa.azurecr.io/identity:$(imageTag)
+    container_name: identity
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      EventBusConnection: Endpoint=sb://point-qa-service-bus.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=7Wqq9c4N6Nx1ZPK6waSVONOiMEy39xxzHsASN0cYKs0=
+      ConnectionStrings__ConfigurationDbConnection: Server=sql-db;Database=POINT-IS4-Config;User Id=sa;Password=\N{-@}XJgWp[IrQ}:5dd;TrustServerCertificate=true;
+      ConnectionStrings__PersistedGrantDbConnection: Server=sql-db;Database=POINT-IS4-Grants;User Id=sa;Password=\N{-@}XJgWp[IrQ}:5dd;TrustServerCertificate=true;
+      ConnectionStrings__IdentityDbConnection: Server=sql-db;Database=POINT-ASP-Identity;User Id=sa;Password=\N{-@}XJgWp[IrQ}:5dd;TrustServerCertificate=true;
+      ConnectionStrings__DataProtectionDbConnection: Server=sql-db;Database=POINT-DataProtect;User Id=sa;Password=\N{-@}XJgWp[IrQ}:5dd;TrustServerCertificate=true;
+      Serilog__Using__0: Serilog.Sinks.Console
+      Serilog__MinimumLevel__Default: Debug
+      Serilog__MinimumLevel__Override__Microsoft: Warning
+      Serilog__MinimumLevel__Override__System: Warning
+      Serilog__WriteTo__0__Name: Console
+      Serilog__Enrich__0: FromLogContext
+      Serilog__Properties__ApplicationName: Identity
+      AdminApiConfiguration__ApiName: Identity Admin API
+      AdminApiConfiguration__ApiVersion: v1
+      AdminApiConfiguration__ApiBaseUrl: identity-api
+      AdminApiConfiguration__IdentityServerBaseUrl: https://localhost:7097
+      AdminApiConfiguration__OidcSwaggerUIClientId: identity_admin_api_swagger_clientId
+      AdminApiConfiguration__OidcApiName: admin_api
+      AdminApiConfiguration__RequireHttpsMetadata: 'false'
+      AdminApiConfiguration__CorsAllowAnyOrigin: 'true'
+      BasePath: ''
+      RegisterConfiguration__Enabled: 'true'
+      DataProtectionConfiguration__ProtectKeysWithAzureKeyVault: 'false'
+      #AzureKeyVaultConfiguration
+      SeedConfiguration_ApplySeed: 'true'
+      DatabaseMigrationsConfiguration__ApplyDatabaseMigrations: 'true'
+      IdentityServerOptions__KeyManagement__Enabled: 'true'
+      IdentityServerOptions__Events__RaiseErrorEvents: 'false'
+      IdentityServerOptions__Events__RaiseInformationEvents: 'false'
+      IdentityServerOptions__Events__RaiseFailureEvents: 'false'
+      IdentityServerOptions__Events__RaiseSuccessEvents: 'false'
+      SubscriptionClientName: Identity
+    ports:
+      - "3001:80"
+    networks:
+      - point-net
+    restart: unless-stopped
+
+volumes:
+  point-sqldata:
+    external: false
+
+networks:
+  point-net:
+    external: true

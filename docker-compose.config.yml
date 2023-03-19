@@ -4,35 +4,73 @@ services:
 
   sql-db:
     environment:
-      MYSQL_ROOT_PASSWORD: dev-password
+      MSSQL_SA_PASSWORD: \N{-@}XJgWp[IrQ}:5dd
+      ACCEPT_EULA: Y
     ports:
-      - "3306:3306"
+      - "1433:1433"
     volumes:
-      - point-sqldata:/var/lib/mysql
+      - point-sqldata:/var/lib/sqlserver
 
   identity-api:
     environment:
       ASPNETCORE_ENVIRONMENT: Development
-      EventBusConnection: ${AZURE_SERVICE_BUS}
-      ConnectionStrings__AuthConnection: server=sql-db;port=3306;user=root;password=dev-password;database=AuthServerDb
-      ASPNETCORE_URLS: "https://+"
-      ASPNETCORE_HTTPS_PORT: "3001"
-      ASPNETCORE_Kestrel__Certificates__Default__Password: ${SSL_CERT_PASSWORD}
-      ASPNETCORE_Kestrel__Certificates__Default__Path: "/https/AuthApi.pfx"
+      EventBusConnection: Endpoint=sb://point-qa-service-bus.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=7Wqq9c4N6Nx1ZPK6waSVONOiMEy39xxzHsASN0cYKs0=
+      ConnectionStrings__ConfigurationDbConnection: Server=sql-db;Database=POINT-IS4-Config;User Id=sa;Password=\N{-@}XJgWp[IrQ}:5dd;TrustServerCertificate=true;
+      ConnectionStrings__PersistedGrantDbConnection: Server=sql-db;Database=POINT-IS4-Grants;User Id=sa;Password=\N{-@}XJgWp[IrQ}:5dd;TrustServerCertificate=true;
+      ConnectionStrings__IdentityDbConnection: Server=sql-db;Database=POINT-ASP-Identity;User Id=sa;Password=\N{-@}XJgWp[IrQ}:5dd;TrustServerCertificate=true;
+      ConnectionStrings__DataProtectionDbConnection: Server=sql-db;Database=POINT-DataProtect;User Id=sa;Password=\N{-@}XJgWp[IrQ}:5dd;TrustServerCertificate=true;
+      Serilog__Using__0: Serilog.Sinks.Console
+      Serilog__MinimumLevel__Default: Debug
+      Serilog__MinimumLevel__Override__Microsoft: Warning
+      Serilog__MinimumLevel__Override__System: Warning
+      Serilog__WriteTo__0__Name: Console
+      Serilog__Enrich__0: FromLogContext
+      Serilog__Properties__ApplicationName: Identity
+      AdminApiConfiguration__ApiName: Identity Admin API
+      AdminApiConfiguration__ApiVersion: v1
+      AdminApiConfiguration__ApiBaseUrl: identity-api
+      AdminApiConfiguration__IdentityServerBaseUrl: identity-api
+      AdminApiConfiguration__OidcSwaggerUIClientId: identity_admin_api_swagger_clientId
+      AdminApiConfiguration__OidcApiName: admin_api
+      AdminApiConfiguration__RequireHttpsMetadata: false
+      AdminApiConfiguration__CorsAllowAnyOrigin: true
+      BasePath: ""
+      RegisterConfiguration__Enabled: true
+      DataProtectionConfiguration__ProtectKeysWithAzureKeyVault: false
+      #AzureKeyVaultConfiguration
+      SeedConfiguration_ApplySeed: true
+      DatabaseMigrationsConfiguration__ApplyDatabaseMigrations: true
+      IdentityServerOptions__KeyManagement__Enabled: true
+      IdentityServerOptions__Events__RaiseErrorEvents: false
+      IdentityServerOptions__Events__RaiseInformationEvents: false
+      IdentityServerOptions__Events__RaiseFailureEvents: false
+      IdentityServerOptions__Events__RaiseSuccessEvents: false
+      SubscriptionClientName: Identity
     ports:
-      - "3001:443"
+      - "3001:80"
 
   point-api:
     environment:
-      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_ENVIRONMENT: QA
       EventBusConnection: ${AZURE_SERVICE_BUS}
-      ConnectionStrings__ShopDbConnection: server=sql-db;port=3306;user=root;password=dev-password;database=POINT-SHOP-DB
-      ASPNETCORE_URLS: "https://+"
-      ASPNETCORE_HTTPS_PORT: "3003"
-      ASPNETCORE_Kestrel__Certificates__Default__Password: ${SSL_CERT_PASSWORD}
-      ASPNETCORE_Kestrel__Certificates__Default__Path: "/https/Point.Services.Shops.Api.pfx"
+      ConnectionStrings__AppDbConnection: Server=sql-db;Database=point;User Id=sa;Password=\N{-@}XJgWp[IrQ}:5dd;TrustServerCertificate=true;
+      Serilog__Using__0: Serilog.Sinks.Console
+      Serilog__MinimumLevel__Default: Debug
+      Serilog__MinimumLevel__Override__Microsoft: Warning
+      Serilog__MinimumLevel__Override__System: Warning
+      Serilog__WriteTo__0__Name: Console
+      Serilog__Enrich__0: FromLogContext
+      Serilog__Properties__ApplicationName: Point API
+      ApiConfiguration__ApiName: Point API
+      ApiConfiguration__ApiVersion: v1
+      ApiConfiguration__ApiBaseUrl: point-api
+      ApiConfiguration__IdentityServerBaseUrl: identity-api
+      ApiConfiguration__OidcSwaggerUIClientId: point_api_swagger_clientId
+      ApiConfiguration__OidcApiName: point_api
+      ApiConfiguration__RequireHttpsMetadata: false
+      ApiConfiguration__CorsAllowAnyOrigin: true
     ports:
-      - "3003:443"
+      - "3002:80"
     volumes:
       - ${USERPROFILE}\.aspnet\https:/https:ro
       - ${APPDATA}\microsoft\UserSecrets\:/root/.microsoft/usersecrets
@@ -40,4 +78,8 @@ services:
 volumes:
   point-sqldata:
     external: false
+
+networks:
+  point-net:
+    driver: bridge
 

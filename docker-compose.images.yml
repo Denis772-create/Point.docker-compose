@@ -3,8 +3,8 @@ version: '3.8'
 services:
 
   sql-db:
-    image: mysql
-    command: --default-authentication-plugin=mysql_native_password
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sql-server
     restart: always
 
   identity-api:
@@ -12,6 +12,7 @@ services:
     build: 
       context: ../Auth-Service/src
       dockerfile: Point.Services.Identity.Api/Dockerfile
+    container_name: identity
     depends_on:
       - sql-db
 
@@ -20,6 +21,7 @@ services:
     build: 
       context: ../Point.API/src
       dockerfile: Point.API/Dockerfile
+    container_name: main-api
     depends_on:
       - sql-db
       - identity-api
